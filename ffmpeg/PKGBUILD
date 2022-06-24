@@ -1,7 +1,6 @@
-pkgname=ffmpeg+clang
-pkgver=5.0.1
-pkgrel=5
-epoch=2
+pkgname=ffmpeg-git
+pkgver=5.1.r106894.g260d7d5a6c
+pkgrel=1
 pkgdesc='Complete solution to record, convert and stream audio and video'
 arch=(x86_64)
 url=https://ffmpeg.org/
@@ -78,17 +77,9 @@ optdepends=(
   'ladspa: LADSPA filters'
   'nvidia-utils: Nvidia NVDEC/NVENC support'
 )
-provides=(
-  'ffmpeg' "ffmpeg=${epoch}:${pkgver}"
-  libavcodec.so
-  libavdevice.so
-  libavfilter.so
-  libavformat.so
-  libavutil.so
-  libpostproc.so
-  libswresample.so
-  libswscale.so
-)
+provides=('libavcodec.so' 'libavdevice.so' 'libavfilter.so' 'libavformat.so'
+          'libavutil.so' 'libpostproc.so' 'libswresample.so' 'libswscale.so'
+          'ffmpeg')
 conflicts=('ffmpeg')
 _commit=240d82f26eef10461c8b78b09a0db76c464deea8
 source=(
@@ -100,13 +91,7 @@ sha256sums=('SKIP'
   '42bd572442a4eba4e9559953c72f9e980b78286ab288ac01e659be39d8bc7298'
   '91973c465f01446a999f278f0c2a3763304994dba1ac35de0e4c72f12f39409e')
 
-_llvm=0
-
 prepare() {
-
-  if clang --version 2>/dev/null | grep -iq "clang\s*version\s*[0-9]" && ld.lld --version 2>/dev/null | grep -iq "LLD\s*[0-9]"; then
-    _llvm=1
-  fi
 
   cd "${srcdir:?}/ffmpeg" || (
     echo -e "\E[1;31mCan't cd to ${srcdir:?}/ffmpeg directory! Prepare Failed! \E[0m"
@@ -125,9 +110,7 @@ build() {
     echo -e "\E[1;31mCan't cd to ${srcdir:?}/ffmpeg directory! Build Failed! \E[0m"
     exit 1
   )
-
-  if [[ ${_llvm} -eq 1 ]]; then
-
+  
     CFLAGS="${CFLAGS} -flto=thin"
     CXXFLAGS="${CXXFLAGS} -flto=thin"
     LDFLAGS="${LDFLAGS} -fuse-ld=lld"
@@ -192,67 +175,7 @@ build() {
       --enable-shared \
       --enable-version3
 
-  else
-
-    ./configure \
-      --prefix=/usr \
-      --disable-debug \
-      --disable-static \
-      --disable-stripping \
-      --enable-amf \
-      --enable-avisynth \
-      --enable-cuda-llvm \
-      --enable-lto \
-      --enable-fontconfig \
-      --enable-gmp \
-      --enable-gnutls \
-      --enable-gpl \
-      --enable-ladspa \
-      --enable-libaom \
-      --enable-libass \
-      --enable-libbluray \
-      --enable-libdav1d \
-      --enable-libdrm \
-      --enable-libfreetype \
-      --enable-libfribidi \
-      --enable-libgsm \
-      --enable-libiec61883 \
-      --enable-libjack \
-      --enable-libmfx \
-      --enable-libmodplug \
-      --enable-libmp3lame \
-      --enable-libopencore_amrnb \
-      --enable-libopencore_amrwb \
-      --enable-libopenjpeg \
-      --enable-libopus \
-      --enable-libpulse \
-      --enable-librav1e \
-      --enable-librsvg \
-      --enable-libsoxr \
-      --enable-libspeex \
-      --enable-libsrt \
-      --enable-libssh \
-      --enable-libsvtav1 \
-      --enable-libtheora \
-      --enable-libv4l2 \
-      --enable-libvidstab \
-      --enable-libvmaf \
-      --enable-libvorbis \
-      --enable-libvpx \
-      --enable-libwebp \
-      --enable-libx264 \
-      --enable-libx265 \
-      --enable-libxcb \
-      --enable-libxml2 \
-      --enable-libxvid \
-      --enable-libzimg \
-      --enable-nvdec \
-      --enable-nvenc \
-      --enable-shared \
-      --enable-version3
-
-  fi
-
+  
   make
   make tools/qt-faststart
   make doc/ff{mpeg,play}.1
